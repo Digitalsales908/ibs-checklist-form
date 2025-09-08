@@ -7,9 +7,37 @@ const fontkit = require('@pdf-lib/fontkit');
 const AWS = require('aws-sdk');
 require('dotenv').config();
 const fs = require("fs");
-
+const nodemailer = require("nodemailer"); // <-- this line is missing
 const app = express();
 const PORT = 3000;
+
+
+// Email Configuration
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: process.env.SMTP_PORT || 587,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS // Use App-specific password for Gmail
+  }
+});
+
+// Function to send email with PDF attachment
+const sendEmailWithPDF = async (recipientEmail, pdfBuffer, formData) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: recipientEmail,
+    subject: 'IBS Checklist Results',
+    text: `Dear ${formData.name},\n\nThank you for completing the IBS checklist. Please find your results attached.\n\nBest regards,\nProgenics Labs`,
+    attachments: [{
+      filename: 'IBS_Checklist_Results.pdf',
+      content: pdfBuffer
+    }]
+  };
+
+  return transporter.sendMail(mailOptions);
+};
 
 // Multer middleware (parse text fields only)
 const upload = multer();
@@ -305,18 +333,35 @@ app.post("/submit", upload.none(), async (req, res) => {
     try {
       // Upload to S3
       const s3Url = await uploadToS3(pdfBytes, pdfFileName);
+      
+      // Send email with PDF attachment
+      try {
+        await sendEmailWithPDF(formData.email, pdfBytes, formData);
+        console.log('Email sent successfully to:', formData.email);
+      } catch (emailError) {
+        console.error('Error sending email:', emailError);
+      }
+
       res.json({ 
         success: true, 
-        message: "Form submitted successfully", 
+        message: "Form submitted successfully and email sent", 
         pdfUrl: s3Url,
         localPath: pdfPath
       });
     } catch (s3Error) {
       console.error('S3 upload error:', s3Error);
-      // Even if S3 upload fails, we still have the local copy
+      
+      // Try to send email even if S3 upload fails
+      try {
+        await sendEmailWithPDF(formData.email, pdfBytes, formData);
+        console.log('Email sent successfully to:', formData.email);
+      } catch (emailError) {
+        console.error('Error sending email:', emailError);
+      }
+
       res.json({ 
         success: true, 
-        message: "Form submitted and saved locally (S3 upload failed)", 
+        message: "Form submitted and email sent (S3 upload failed)", 
         localPath: pdfPath
       });
     }

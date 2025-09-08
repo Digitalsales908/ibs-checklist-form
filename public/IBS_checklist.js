@@ -282,6 +282,34 @@ function validateForm() {
   return isValid;
 }
 
+// Modal functionality
+function showModal(name, age, gender, phone, email, riskLevel, percentage, message) {
+  const modal = document.getElementById('summaryModal');
+  
+  // Update modal content
+  document.getElementById('modal-name').textContent = name;
+  document.getElementById('modal-age').textContent = age;
+  document.getElementById('modal-gender').textContent = gender;
+  document.getElementById('modal-phone').textContent = phone;
+  document.getElementById('modal-email').textContent = email;
+  
+  const modalRiskLevel = document.getElementById('modal-risk-level');
+  modalRiskLevel.textContent = riskLevel;
+  modalRiskLevel.className = 'risk-value ' + riskLevel.toLowerCase();
+  
+  document.getElementById('modal-percentage').textContent = percentage + '%';
+  document.getElementById('modal-message').textContent = message;
+  document.getElementById('modal-message').className = 'summary-message ' + riskLevel.toLowerCase();
+
+  // Update progress bar
+  const progressFill = document.getElementById('modal-progress-fill');
+  progressFill.style.width = percentage + '%';
+  progressFill.className = riskLevel.toLowerCase();
+
+  // Show modal
+  modal.style.display = 'block';
+}
+
 // Initialize overall progress and auto-selection on page load
 document.addEventListener('DOMContentLoaded', function() {
   updateOverallProgress();
@@ -326,6 +354,24 @@ document.addEventListener('DOMContentLoaded', function() {
       clearError(this);
     }
   });
+
+  // Set up modal close functionality
+  const modal = document.getElementById('summaryModal');
+  const closeButton = document.getElementsByClassName('close-button')[0];
+  
+  // Close modal when clicking the X button
+  if (closeButton) {
+    closeButton.onclick = function() {
+      modal.style.display = 'none';
+    }
+  }
+
+  // Close modal when clicking outside
+  window.onclick = function(event) {
+    if (event.target == modal) {
+      modal.style.display = 'none';
+    }
+  }
   
   // Handle form submission
   form.addEventListener("submit", async (e) => {
@@ -353,8 +399,38 @@ document.addEventListener('DOMContentLoaded', function() {
       const result = await response.json();
       
       if (result.success) {
-        // Show success message
-        alert("Form submitted successfully!");
+        // Get form values for modal
+        const name = document.getElementById('name').value;
+        const age = document.getElementById('age').value;
+        const sex = document.getElementById('sex').value;
+        const phone = document.getElementById('phone').value;
+        const email = document.getElementById('email').value;
+        
+        // Get current risk level and percentage
+        const percentage = parseInt(document.getElementById('overall-percentage').textContent);
+        let riskLevel = '';
+        let message = '';
+
+        if (percentage >= 41) {
+          riskLevel = 'High';
+          message = document.getElementById('high-risk-message').textContent;
+        } else if (percentage >= 21) {
+          riskLevel = 'Moderate';
+          message = document.getElementById('moderate-risk-message').textContent;
+        } else if (percentage >= 1) {
+          riskLevel = 'Low';
+          message = document.getElementById('low-risk-message').textContent;
+        } else {
+          riskLevel = 'No Risk';
+          message = 'No significant IBS symptoms detected.';
+        }
+
+        // Get country code and format phone number
+        const countryCode = document.getElementById('country-code') ? document.getElementById('country-code').value : '';
+        const fullPhone = countryCode && phone ? countryCode + ' ' + phone : phone;
+        
+        // Show the summary modal instead of alert
+        showModal(name, age, sex, fullPhone, email, riskLevel, percentage, message);
         
         // Optionally reset the form
         form.reset();

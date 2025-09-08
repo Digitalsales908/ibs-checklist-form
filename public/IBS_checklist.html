@@ -308,6 +308,57 @@
     </form>
   </div>
 
+  <!-- Summary Modal -->
+  <div id="summaryModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h2>IBS Health Assessment Summary</h2>
+      <div class="modal-body">
+        <div class="patient-info">
+          <h3>Patient Information</h3>
+          <div class="patient-details-grid">
+            <div class="detail-row">
+              <div class="detail-item">
+                <label>Name:</label>
+                <span id="modal-name"></span>
+              </div>
+              <div class="detail-item">
+                <label>Age:</label>
+                <span id="modal-age"></span>
+              </div>
+              <div class="detail-item">
+                <label>Gender:</label>
+                <span id="modal-gender"></span>
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-item">
+                <label>Email:</label>
+                <span id="modal-email"></span>
+              </div>
+              <div class="detail-item">
+                <label>Phone:</label>
+                <span id="modal-phone"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="assessment-results">
+          <div class="summary-header">
+            <div class="risk-level">
+              Risk Level: <span id="modal-risk-level" class="risk-value"></span>
+            </div>
+            <div id="modal-percentage" class="percentage-value"></div>
+          </div>
+          <div class="modal-progress-bar">
+            <div id="modal-progress-fill"></div>
+          </div>
+          <div id="modal-message" class="summary-message"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="IBS_checklist.js"></script>
 </body>
