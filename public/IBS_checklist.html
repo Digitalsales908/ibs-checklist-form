@@ -1,0 +1,314 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IBS Diagnosis Checklist</title>
+  <link rel="stylesheet" href="IBS_checklist.css">
+</head>
+<body>
+  <div class="container">
+    <div class="title-with-logos">
+      <img src="Images/Blue logo progenics.png" />
+      <h1>IBS Diagnosis Checklist</h1>
+      <img src="Images/Gut Genics logo.png" />
+    </div>
+
+    <form id="checklist-form" method="POST" action="/submit" enctype="multipart/form-data">     
+      <div class="form-block three-col">
+        <div class="form-group">
+          <label for="name">Name:</label>
+          <input type="text" id="name" name="name" />
+        </div>
+        <div class="form-group">
+          <label for="age">Age:</label>
+          <input type="number" id="age" name="age" />
+        </div>
+        <div class="form-group">
+          <label for="sex">Sex:</label>
+          <input type="text" id="sex" name="sex" />
+        </div>
+      </div>
+
+      <div class="form-block two-col">
+        <div class="form-group">
+          <label for="phone">Phone No:</label>
+          <input type="tel" id="phone" name="phone" />
+        </div>
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" />
+        </div>
+      </div>
+
+      <div class="section sec-1">
+        <h2>
+          1. How to Define IBS
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="progress-container"><div class="progress-fill" id="progress-sec-1"></div></div>
+            <span id="percent-sec-1">0%</span>
+          </div>
+        </h2>
+        <div class="highlight checkbox-group">
+          <label><input type="checkbox" class="check-item sec-1" name="sec-1" value="Recurrent abdominal pain (≥1 day/week in the last 3 months)"><span class="checkmark"></span> Recurrent abdominal pain (≥1 day/week in the last 3 months)</label>
+          <label><input type="checkbox" class="check-item sec-1" name="sec-1" value="Bloating or abdominal distension"><span class="checkmark"></span> Bloating or abdominal distension</label>
+          <label><input type="checkbox" class="check-item sec-1" name="sec-1" value="Change in bowel frequency"><span class="checkmark"></span> Change in bowel frequency</label>
+          <label><input type="checkbox" class="check-item sec-1" name="sec-1" value="Change in stool form/shape"><span class="checkmark"></span> Change in stool form/shape</label>
+        </div>
+      </div>
+
+      <div class="section sec-2">
+        <h2>
+          2. Pathophysiology
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="progress-container"><div class="progress-fill" id="progress-sec-2"></div></div>
+            <span id="percent-sec-2">0%</span>
+          </div>
+        </h2>
+        <div class="highlight checkbox-group">
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Stress or anxiety"><span class="checkmark"></span> Stress or anxiety</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Visceral hypersensitivity"><span class="checkmark"></span> Visceral hypersensitivity</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Dysregulated gut motility"><span class="checkmark"></span> Dysregulated gut motility</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Microbiota disturbance"><span class="checkmark"></span> Microbiota disturbance</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Inflammation"><span class="checkmark"></span> Inflammation</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Gas production/bloating"><span class="checkmark"></span> Gas production/bloating</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Abnormal pain signaling"><span class="checkmark"></span> Abnormal pain signaling</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Dietary trigger"><span class="checkmark"></span> Dietary trigger</label>
+        </div>
+      </div>
+
+      <div class="section sec-3">
+        <h2>
+          3. Confident Diagnosis
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="progress-container"><div class="progress-fill" id="progress-sec-3"></div></div>
+            <span id="percent-sec-3">0%</span>
+          </div>
+        </h2>
+        <div class="highlight checkbox-group">
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Symptoms > 6 months in duration"><span class="checkmark"></span> Symptoms &gt; 6 months in duration</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Abdominal pain ≥1 day/week"><span class="checkmark"></span> Abdominal pain ≥1 day/week</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Pain related to defecation"><span class="checkmark"></span> Pain related to defecation</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Stool changes in form/frequency"><span class="checkmark"></span> Stool changes in form/frequency</label>
+
+          <strong>Bristol Stool Chart Reference:</strong>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 1: Separate hard lumps, like nuts (hard to pass)"><span class="checkmark"></span> Type 1: Separate hard lumps, like nuts (hard to pass)</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 2: Lumpy and sausage-shaped"><span class="checkmark"></span> Type 2: Lumpy and sausage-shaped</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 3: Like a sausage with cracks"><span class="checkmark"></span> Type 3: Like a sausage with cracks</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 4: Smooth, soft sausage or snake"><span class="checkmark"></span> Type 4: Smooth, soft sausage or snake</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 5: Soft blobs with clear-cut edges"><span class="checkmark"></span> Type 5: Soft blobs with clear-cut edges</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 6: Mushy with ragged edges"><span class="checkmark"></span> Type 6: Mushy with ragged edges</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 7: Watery, no solid pieces"><span class="checkmark"></span> Type 7: Watery, no solid pieces</label>
+        </div>
+      </div>
+
+      <div class="section sec-4">
+        <h2>
+          4. Warning Signs 
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="progress-container"><div class="progress-fill" id="progress-sec-4"></div></div>
+            <span id="percent-sec-4">0%</span>
+          </div>
+        </h2>
+        <div class="highlight warning checkbox-group">
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Weight loss"><span class="checkmark"></span> Weight loss</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Blood in stool"><span class="checkmark"></span> Blood in stool</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Anemia or low hemoglobin"><span class="checkmark"></span> Anemia or low hemoglobin</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Fever"><span class="checkmark"></span> Fever</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Nocturnal symptoms"><span class="checkmark"></span> Nocturnal symptoms</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Family history of IBD, celiac, cancer"><span class="checkmark"></span> Family history of IBD, celiac, cancer</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="New symptom onset (<6 months)"><span class="checkmark"></span> New symptom onset (&lt;6 months)</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Abdominal mass"><span class="checkmark"></span> Abdominal mass</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Recent antibiotic use"><span class="checkmark"></span> Recent antibiotic use</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Extra-intestinal signs (rash, arthritis, eye issues)"><span class="checkmark"></span> Extra-intestinal signs (rash, arthritis, eye issues)</label>
+        </div>
+      </div>
+
+      <div class="overall-progress-section">
+        <h3>Overall Completion</h3>
+        <div class="overall-progress-container">
+          <div class="overall-progress-fill" id="overall-progress"></div>
+        </div>
+        <div class="current-risk-label" id="current-risk-label"></div>
+        <div class="overall-percentage" id="overall-percentage">0%</div>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <button type="submit" id="submitBtn" class="submit-button">Submit</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="IBS_checklist.js"></script>
+</body>
+</html>
+
+ -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IBS Diagnosis Checklist</title>
+  <link rel="stylesheet" href="IBS_checklist.css">
+</head>
+<body>
+  <div class="container">
+   <div class="title-with-logos">
+      <img src="Images/Blue logo progenics.png" />
+      <h1>IBS Diagnosis Checklist</h1>
+      <img src="Images/Gut Genics logo.png" />
+   </div>
+
+   <form id="checklist-form" method="POST" action="/submit">     
+      <!-- Section 1 -->
+      <div class="form-block three-col">
+        <div class="form-group">
+          <label for="name">Name:</label>
+          <input type="text" id="name" name="name" />
+        </div>
+        <div class="form-group">
+          <label for="age">Age:</label>
+          <input type="number" id="age" name="age" />
+        </div>
+        <div class="form-group">
+          <label for="sex">Gender:</label>
+          <select id="sex" name="sex">
+            <option value="">Select</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Second Block: 2 Columns -->
+      <div class="form-block two-col">
+        <div class="form-group">
+          <label for="phone">Phone No:</label>
+          <input type="tel" id="phone" name="phone" pattern="[0-9]*" inputmode="numeric" onkeypress="return /[0-9]/i.test(event.key)" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+        </div>
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" />
+        </div>
+      </div>
+
+      <!-- Section 1 -->
+      <div class="section sec-1">
+        <h2>
+          1. How to Define IBS
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="progress-container"><div class="progress-fill" id="progress-sec-1"></div></div>
+            <span id="percent-sec-1">0%</span>
+          </div>
+        </h2>
+        <div class="highlight checkbox-group">
+          <label><input type="checkbox" class="check-item sec-1" name="sec-1" value="Recurrent abdominal pain (>1 day/week in the last 3 months)"><span class="checkmark"></span> Recurrent abdominal pain (≥1 day/week in the last 3 months)</label>
+          <label><input type="checkbox" class="check-item sec-1" name="sec-1" value="Bloating or abdominal distension"><span class="checkmark"></span> Bloating or abdominal distension</label>
+          <label><input type="checkbox" class="check-item sec-1" name="sec-1" value="Change in bowel frequency and stool form and shape"><span class="checkmark"></span> Change in bowel frequency and stool form and shape</label>
+        </div>
+      </div>
+
+      <!-- Section 2 -->
+      <div class="section sec-2">
+        <h2>
+          2. Pathophysiology
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="progress-container"><div class="progress-fill" id="progress-sec-2"></div></div>
+            <span id="percent-sec-2">0%</span>
+          </div>
+        </h2>
+        <div class="highlight checkbox-group">
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Stress or anxiety"><span class="checkmark"></span> Stress or anxiety</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Abnormal pain signaling"><span class="checkmark"></span> Abnormal pain signaling</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Visceral hypersensitivity"><span class="checkmark"></span> Visceral hypersensitivity</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Dysregulated gut motility"><span class="checkmark"></span> Dysregulated gut motility</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Microbiota disturbance"><span class="checkmark"></span> Microbiota disturbance</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Gut Inflammation"><span class="checkmark"></span> Gut Inflammation</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Gas production/bloating"><span class="checkmark"></span> Gas production/bloating</label>
+          <label><input type="checkbox" class="check-item sec-2" name="sec-2" value="Dietary trigger"><span class="checkmark"></span> Dietary trigger</label>
+        </div>
+      </div>
+
+      <!-- Section 3 -->
+      <div class="section sec-3">
+        <h2>
+          3. Confident Diagnosis
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="progress-container"><div class="progress-fill" id="progress-sec-3"></div></div>
+            <span id="percent-sec-3">0%</span>
+          </div>
+        </h2>
+        <div class="highlight checkbox-group">
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Symptoms > 6 months in duration"><span class="checkmark"></span> Symptoms > 6 months in duration</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Abdominal pain >1 day/week"><span class="checkmark"></span> Abdominal pain ≥1 day/week</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Pain related to defecation"><span class="checkmark"></span> Pain related to defecation</label>
+          <strong>Stool changes in form/frequency (Bristol Stool Chart Reference)</strong>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 1: Separate hard lumps, like nuts (hard to pass)"><span class="checkmark"></span> Type 1: Separate hard lumps, like nuts (hard to pass)</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 2: Lumpy and sausage-shaped"><span class="checkmark"></span> Type 2: Lumpy and sausage-shaped</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 3: Like a sausage with cracks"><span class="checkmark"></span> Type 3: Like a sausage with cracks</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 4: Smooth, soft sausage or snake"><span class="checkmark"></span> Type 4: Smooth, soft sausage or snake</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 5: Soft blobs with clear-cut edges"><span class="checkmark"></span> Type 5: Soft blobs with clear-cut edges</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 6: Mushy with ragged edges"><span class="checkmark"></span> Type 6: Mushy with ragged edges</label>
+          <label><input type="checkbox" class="check-item sec-3" name="sec-3" value="Type 7: Watery, no solid pieces"><span class="checkmark"></span> Type 7: Watery, no solid pieces</label>
+        </div>
+      </div>
+
+      <!-- Section 4 -->
+      <div class="section sec-4">
+        <h2>
+          4. Warning Signs 
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="progress-container"><div class="progress-fill" id="progress-sec-4"></div></div>
+            <span id="percent-sec-4">0%</span>
+          </div>
+        </h2>
+        <div class="highlight warning checkbox-group">
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Blood in stool"><span class="checkmark"></span> Blood in stool</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Anemia or low hemoglobin"><span class="checkmark"></span> Anemia or low hemoglobin</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Abdominal mass"><span class="checkmark"></span> Abdominal mass</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Fecal Incontinence"><span class="checkmark"></span> Fecal Incontinence</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Weight loss"><span class="checkmark"></span> Weight loss</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Fever"><span class="checkmark"></span> Fever</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Nocturnal symptoms"><span class="checkmark"></span> Nocturnal symptoms</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Family history of IBD, celiac, cancer"><span class="checkmark"></span> Family history of IBD, celiac, cancer</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="New symptom onset (<6 months)"><span class="checkmark"></span> New symptom onset (&lt;6 months)</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Recent antibiotic use"><span class="checkmark"></span> Recent antibiotic use</label>
+          <label><input type="checkbox" class="check-item sec-4" name="sec-4" value="Extra-intestinal signs (rash, arthritis, eye Inflammation)"><span class="checkmark"></span> Extra-intestinal signs (rash, arthritis, eye Inflammation)</label>
+        </div>
+      </div>
+
+      <!-- Overall Summary -->
+      <div class="overall-summary">
+        <h3>Overall Completion</h3>
+        <div class="overall-progress-bar" aria-hidden="true">
+          <div class="overall-progress-fill" id="overall-progress-fill" style="width:0%"></div>
+        </div>
+        <div class="overall-percentage" id="overall-percentage">0%</div>
+        <div class="current-risk-label" id="current-risk-label"></div>
+        <div class="low-risk-message" id="low-risk-message" style="display:none; color:#1a7f37; font-weight:bold; margin: 20px 0 0 0; text-align:center;">
+          You have low-risk IBS symptoms with no active inflammation. A diet of easily digestible foods is recommended, while avoiding known triggers. For optimal management, contact the Progenics team.
+        </div>
+        <div class="moderate-risk-message" id="moderate-risk-message" style="display:none; color:#e6a700; font-weight:bold; margin: 20px 0 0 0; text-align:center;">
+          You have moderate-risk IBS symptoms with noticeable inflammation. A personalized gut microbiome test with carefully planned diet of easily digestible foods is recommended. Connect with the Progenics team for better management and nutritional support.
+        </div>
+        <div class="high-risk-message" id="high-risk-message" style="display:none; color:#ff0000; font-weight:bold; margin: 20px 0 0 0; text-align:center;">
+          <span style="font-size:1.2em; text-transform:uppercase;">"RED ALERT!"</span><br>
+          You have high-risk IBS symptoms with active inflammation. A personalized gut microbiome test with restrictive diet focusing on easily digestible foods is essential. Connect with Progenics team for optimal care and management.
+        </div>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <button type="submit" id="submitBtn" class="submit-button">Submit</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="IBS_checklist.js"></script>
+</body>
+</html>

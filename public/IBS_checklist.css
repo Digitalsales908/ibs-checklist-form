@@ -1,0 +1,297 @@
+/* IBS Diagnosis Checklist Styles */
+:root {
+  --blue: #0099cc;
+  --green: #4CAF50;
+  --purple: #8e44ad;
+  --brown: #8B4513;
+  --pink: #e91e63;
+  --bg: #f4f6f8;
+  --card-bg: #ffffff;
+  --radius: 12px;
+  --transition: 0.3s ease-in-out;
+}
+body {
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  background-color: var(--bg);
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+.container {
+  max-width: 960px;
+  margin: auto;
+  background: var(--card-bg);
+  padding: 25px 30px;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+h1 {
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  text-align: center;
+  color: var(--blue);
+  margin-bottom: 30px;
+  font-weight: bold;
+}
+.section {
+  margin-bottom: 40px;
+  border-left: 6px solid #ddd;
+  padding-left: 20px;
+  padding-top: 10px;
+}
+h2 {
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+.progress-container {
+  flex-shrink: 0;
+  width: 150px;
+  height: 10px;
+  background-color: #e0e0e0;
+  border-radius: 50px;
+  overflow: hidden;
+  margin-left: 15px;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background-color: var(--blue);
+  transition: var(--transition);
+}
+.highlight {
+  padding: 20px;
+  background: #f0faff;
+  border-radius: var(--radius);
+  border-left: 5px solid var(--blue);
+}
+.warning {
+  background: #fff4e6;
+  border-left: 5px solid var(--brown);
+}
+.checkbox-group label {
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  display: block;
+  position: relative;
+  padding-left: 30px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  user-select: none;
+  transition: color var(--transition);
+  line-height: 1.4;
+  text-align: left;
+}
+.checkbox-group input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+.checkbox-group .checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #eee;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+.checkbox-group label:hover input ~ .checkmark {
+  background-color: #ccc;
+}
+.checkbox-group input:checked ~ .checkmark {
+  background-color: var(--green);
+}
+.checkbox-group .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+.checkbox-group input:checked ~ .checkmark:after {
+  display: block;
+}
+.checkbox-group .checkmark:after {
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.sec-1 .progress-fill { background-color: var(--blue); }
+.sec-2 .progress-fill { background-color: var(--green); }
+.sec-3 .progress-fill { background-color: var(--pink); }
+.sec-4 .progress-fill { background-color: var(--brown); }
+.sec-1 h2 { color: var(--blue); }
+.sec-2 h2 { color: var(--green); }
+.sec-3 h2 { color: var(--pink); }
+.sec-4 h2 { color: var(--brown); }
+.form-block {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+.form-block.three-col .form-group {
+  flex: 1 1 calc(33.333% - 20px);
+}
+.form-block.two-col .form-group {
+  flex: 1 1 calc(50% - 20px);
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+.form-group label {
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #004d4d;
+  text-align: left;
+}
+.form-group input {
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: left;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 5px;
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+}
+
+.form-group input.error,
+.form-group select.error {
+  border-color: #dc3545;
+}
+/* Style select elements to match inputs */
+.form-group select {
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+}
+.title-with-logos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.title-with-logos img {
+  height: 80px;
+  width: auto;
+}
+.title-text {
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  flex-grow: 1;
+  text-align: center;
+  font-size: 28px;
+  color: #006666;
+  font-weight: bold;
+}
+.submit-button {
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  background-color: #5a4e7c;
+  color: white;
+  padding: 12px 30px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: bold;
+}
+.submit-button:hover {
+  background-color: #473b63;
+}
+/* Overall summary styles: numeric percent and risk label */
+.overall-summary {
+  text-align: center;
+  margin: 20px 0 30px;
+}
+.overall-summary h3 {
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  color: #495057;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: bold;
+}
+.overall-percentage {
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  font-size: 22px;
+  font-weight: bold;
+  color: #2e4053;
+  margin: 6px 0;
+}
+.current-risk-label {
+  text-align: center;
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  min-height: 20px;
+}
+.current-risk-label.no-risk { color: #6c757d; }
+.current-risk-label.low-risk { color: #4CAF50; }
+.current-risk-label.moderate-risk { color: #FFC107; }
+.current-risk-label.high-risk { color: #F44336; }
+
+/* Compact overall progress bar */
+.overall-progress-bar {
+  width: 100%;
+  max-width: 480px;
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 8px auto 6px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
+}
+.overall-progress-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.4s ease;
+}
+.overall-progress-fill.low {
+  background: linear-gradient(to right, #4CAF50, #4CAF50);
+}
+.overall-progress-fill.moderate {
+  background: linear-gradient(to right, #4CAF50, #FFC107, #ff9800);
+}
+.overall-progress-fill.high {
+  background: linear-gradient(to right, #4CAF50, #FFC107, #ff9800, #F44336);
+}
+
+@media (max-width: 600px) {
+  .title-with-logos {
+    flex-direction: column;
+  }
+  .title-text {
+    text-align: center;
+  }
+  .overall-progress-container {
+    max-width: 300px;
+    height: 20px;
+  }
+  .overall-percentage {
+    font-size: 18px;
+  }
+}

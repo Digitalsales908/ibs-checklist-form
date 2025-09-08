@@ -1,0 +1,24 @@
+{
+  "name": "ibs-code",
+  "version": "1.0.0",
+  "description": "",
+  "main": "IBS_checklist.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
+    "aws-sdk": "^2.1692.0",
+    "body-parser": "^2.2.0",
+    "dotenv": "^17.2.2",
+    "exceljs": "^4.4.0",
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "pdf-lib": "^1.17.1",
+    "pdfkit": "^0.17.2"
+  }
+}
