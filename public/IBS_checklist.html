@@ -189,7 +189,36 @@
       <div class="form-block two-col">
         <div class="form-group">
           <label for="phone">Phone No:</label>
-          <input type="tel" id="phone" name="phone" pattern="[0-9]*" inputmode="numeric" onkeypress="return /[0-9]/i.test(event.key)" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+          <div class="phone-input-container">
+          <select id="country-code" name="country-code" class="country-select">
+             <option value="+1" data-flag="🇺🇸">+1 (USA)</option>
+            <option value="+91" data-flag="🇮🇳">+91 (India)</option>
+            <option value="+44" data-flag="🇬🇧">+44 (UK)</option>
+            <option value="+61" data-flag="🇦🇺">+61 (Australia)</option>
+            <option value="+86" data-flag="🇨🇳">+86 (China)</option>
+            <option value="+81" data-flag="🇯🇵">+81 (Japan)</option>
+            <option value="+49" data-flag="🇩🇪">+49 (Germany)</option>
+            <option value="+33" data-flag="🇫🇷">+33 (France)</option>
+            <option value="+39" data-flag="🇮🇹"> +39 (Italy)</option>
+            <option value="+7" data-flag="🇷🇺"> +7 (Russia)</option>
+            <option value="+82" data-flag="🇰🇷">+82 (South Korea)</option>
+            <option value="+34" data-flag="🇪🇸">+34 (Spain)</option>
+            <option value="+55" data-flag="🇧🇷">+55 (Brazil)</option>
+            <option value="+52" data-flag="🇲🇽">+52 (Mexico)</option>
+            <option value="+971" data-flag="🇦🇪">+971 (UAE)</option>
+            <option value="+966" data-flag="🇸🇦">+966 (Saudi Arabia)</option>
+            <option value="+65" data-flag="🇸🇬">+65 (Singapore)</option>
+            <option value="+64" data-flag="🇳🇿">+64 (New Zealand)</option>
+            <option value="+27" data-flag="🇿🇦">+27 (South Africa)</option>
+            <option value="+60" data-flag="🇲🇾">+60 (Malaysia)</option>
+            <option value="+92" data-flag="🇵🇰">+92 (Pakistan)</option>
+            <option value="+880" data-flag="🇧🇩">+880 (Bangladesh)</option>
+            <option value="+94" data-flag="🇱🇰">+94 (Sri Lanka)</option>
+            <option value="+977" data-flag="🇳🇵">+977 (Nepal)</option>
+            <option value="+95" data-flag="🇲🇲">+95 (Myanmar)</option>
+          </select>
+          <input type="tel" id="phone" name="phone" pattern="[0-9]*" inputmode="numeric" onkeypress="return /[0-9]/i.test(event.key)" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="phone-input"  />
+        </div>
         </div>
         <div class="form-group">
           <label for="email">Email:</label>

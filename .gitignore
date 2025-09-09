@@ -45,3 +45,6 @@ Thumbs.db
 # Generated files (PDFs, uploads, etc.)
 uploads/
 *.pdf
+
+excel/
+*.xlsx
