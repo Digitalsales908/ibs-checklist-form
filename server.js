@@ -415,11 +415,11 @@ app.post("/submit", upload.none(), async (req, res) => {
         let logo1, logo2;
         let logo1Dims, logo2Dims;
         try {
-            const logo1Bytes = fs.readFileSync(path.join(__dirname, 'public', 'images', 'Blue logo progenics.png'));
+            const logo1Bytes = fs.readFileSync(path.join(__dirname, 'public', 'Images', 'Blue logo progenics.png'));
             logo1 = await pdfDoc.embedPng(logo1Bytes);
             logo1Dims = logo1.scale(0.12);
 
-            const logo2Bytes = fs.readFileSync(path.join(__dirname, 'public', 'images', 'Gut Genics logo.png'));
+            const logo2Bytes = fs.readFileSync(path.join(__dirname, 'public', 'Images', 'Gut Genics logo.png'));
             logo2 = await pdfDoc.embedPng(logo2Bytes);
             logo2Dims = logo2.scale(0.12);
 
