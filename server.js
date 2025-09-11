@@ -81,12 +81,12 @@ const sendEmailWithPDF = async (recipientEmail, pdfBuffer, formData) => {
     const mailOptions = {
         from: `"Progenics Medical Center" <${process.env.EMAIL_USER}>`,
         to: recipientEmail,
-        subject: 'Your IBS Assessment Results - Progenics Medical Center',
+        subject: 'Your IBS Assessment Results - Progenics Laboratories Private Limited',
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #2c3e50;">IBS Assessment Results</h2>
                 <p>Dear ${formData.name},</p>
-                <p>Thank you for completing your IBS assessment with Progenics Medical Center. We have attached your detailed assessment results in PDF format.</p>
+                <p>Thank you for completing your IBS assessment with Progenics Laboratories Private Limited. We have attached your detailed assessment results in PDF format.</p>
                 
                 <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <h3 style="margin-top: 0;">Assessment Summary</h3>
@@ -98,7 +98,7 @@ const sendEmailWithPDF = async (recipientEmail, pdfBuffer, formData) => {
                 </div>
                 
                 <p>Please review the attached document carefully. If you have any questions or concerns about your results, don't hesitate to contact us.</p>
-                <p style="margin-top: 20px;">Best regards,<br>Medical Team<br>Progenics Medical Center</p>
+                <p style="margin-top: 20px;">Best regards,<br>Medical Team<br>Progenics Laboratories Private Limited</p>
                 <hr>
                 <p style="font-size: 12px; color: #666;">
                     This is an automated message. Please do not reply to this email.<br>
@@ -419,8 +419,10 @@ app.post("/submit", upload.none(), async (req, res) => {
         let logo1, logo2;
         let logo1Dims, logo2Dims;
         try {
-            const logo1Path = path.join(__dirname, 'public', 'images', 'Blue logo progenics.png');
-            const logo2Path = path.join(__dirname, 'public', 'images', 'Gut Genics logo.png');
+            // const logo1Path = path.join(__dirname, 'public', 'images', 'Blue logo progenics.png');
+            // const logo2Path = path.join(__dirname, 'public', 'images', 'Gut Genics logo.png');
+            const logo1Path = 'https://ibs-checklist-form.onrender.com/Images/Blue%20logo%20progenics.png';
+            const logo2Path = 'https://ibs-checklist-form.onrender.com/Images/Gut%20Genics%20logo.png';
             
             if (fs.existsSync(logo1Path)) {
                 const logo1Image = fs.readFileSync(logo1Path);
