@@ -75,13 +75,39 @@ const getExcelFromS3 = async (fileName) => {
 
 // Function to send email with PDF attachment
 const sendEmailWithPDF = async (recipientEmail, pdfBuffer, formData) => {
+    const completionPercentage = calculateCompletionPercentage(formData);
+    const riskLevel = determineRiskLevel(formData);
+    
     const mailOptions = {
-        from: process.env.EMAIL_USER,
+        from: `"Progenics Medical Center" <${process.env.EMAIL_USER}>`,
         to: recipientEmail,
-        subject: 'IBS Checklist Results',
-        text: `Dear ${formData.name},\n\nThank you for completing the IBS checklist. Please find your results attached.\n\nBest regards,\nProgenics Labs`,
+        subject: 'Your IBS Assessment Results - Progenics Medical Center',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2c3e50;">IBS Assessment Results</h2>
+                <p>Dear ${formData.name},</p>
+                <p>Thank you for completing your IBS assessment with Progenics Medical Center. We have attached your detailed assessment results in PDF format.</p>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <h3 style="margin-top: 0;">Assessment Summary</h3>
+                    <p><strong>Completion:</strong> ${completionPercentage}%</p>
+                    <p><strong>Risk Level:</strong> <span style="color: ${
+                        riskLevel === 'high' ? '#dc3545' : 
+                        riskLevel === 'moderate' ? '#ffc107' : '#28a745'
+                    }; font-weight: bold;">${riskLevel.toUpperCase()}</span></p>
+                </div>
+                
+                <p>Please review the attached document carefully. If you have any questions or concerns about your results, don't hesitate to contact us.</p>
+                <p style="margin-top: 20px;">Best regards,<br>Medical Team<br>Progenics Medical Center</p>
+                <hr>
+                <p style="font-size: 12px; color: #666;">
+                    This is an automated message. Please do not reply to this email.<br>
+                    For any inquiries, please contact our office directly.
+                </p>
+            </div>
+        `,
         attachments: [{
-            filename: 'IBS_Checklist_Results.pdf',
+            filename: `IBS_Assessment_${formData.name}_${new Date().toISOString().split('T')[0]}.pdf`,
             content: pdfBuffer
         }]
     };
@@ -151,7 +177,7 @@ const checkboxOptions = {
         "Symptoms > 6 months in duration",
         "Abdominal pain >1 day/week",
         "Pain related to defecation",
-        "Type 1: Separate hard lumps, like nuts (hard to pass)",
+        "Type 1: Separate hard lumps, like nuts",
         "Type 2: Lumpy and sausage-shaped",
         "Type 3: Like a sausage with cracks",
         "Type 4: Smooth, soft sausage or snake",
@@ -174,7 +200,55 @@ const checkboxOptions = {
     ]
 };
 
-// Handle form submission
+// Function to calculate overall completion percentage
+const calculateCompletionPercentage = (formData) => {
+    let totalOptions = 0;
+    let selectedOptions = 0;
+    
+    for (const secKey of Object.keys(checkboxOptions)) {
+        totalOptions += checkboxOptions[secKey].length;
+        if (formData[secKey]) {
+            selectedOptions += Array.isArray(formData[secKey]) ? formData[secKey].length : 1;
+        }
+    }
+    
+    return totalOptions > 0 ? Math.round((selectedOptions / totalOptions) * 100) : 0;
+};
+
+// Function to determine risk level based on selections
+const determineRiskLevel = (formData) => {
+    // Count warning signs (section 4)
+    const warningSigns = formData["sec-4"] 
+        ? (Array.isArray(formData["sec-4"]) ? formData["sec-4"].length : 1)
+        : 0;
+    
+    // Count pathophysiology factors (section 2)
+    const pathophysiologyFactors = formData["sec-2"]
+        ? (Array.isArray(formData["sec-2"]) ? formData["sec-2"].length : 1)
+        : 0;
+    
+    // Simple risk assessment logic
+    if (warningSigns >= 3) {
+        return "high";
+    } else if (warningSigns >= 1 || pathophysiologyFactors >= 4) {
+        return "moderate";
+    } else {
+        return "low";
+    }
+};
+
+// Function to get risk message based on risk level
+const getRiskMessage = (riskLevel) => {
+    switch (riskLevel) {
+        case "high":
+            return "RED ALERT! You have high-risk IBS symptoms with active inflammation. A personalized gut microbiome test with restrictive diet focusing on easily digestible foods is essential. Connect with Progenics team for optimal care and management.";
+        case "moderate":
+            return "You have moderate-risk IBS symptoms with noticeable inflammation. A personalized gut microbiome test with carefully planned diet of easily digestible foods is recommended. Connect with the Progenics team for better management and nutritional support.";
+        default:
+            return "You have low-risk IBS symptoms with no active inflammation. A diet of easily digestible foods is recommended, while avoiding known triggers. For optimal management, contact the Progenics team.";
+    }
+};
+
 app.post("/submit", upload.none(), async (req, res) => {
     try {
         const formData = req.body;
@@ -197,6 +271,11 @@ app.post("/submit", upload.none(), async (req, res) => {
             }
         }
 
+        // Calculate assessment results
+        const completionPercentage = calculateCompletionPercentage(formData);
+        const riskLevel = determineRiskLevel(formData);
+        const riskMessage = getRiskMessage(riskLevel);
+
         // Handle Excel
         const workbook = new ExcelJS.Workbook();
         const excelFileName = 'submissions/IBS_submissions.xlsx';
@@ -215,22 +294,62 @@ app.post("/submit", upload.none(), async (req, res) => {
             console.log('Creating new Excel file as none exists in S3');
         }
 
+        // Create column headers for all possible fields
+        const baseHeaders = ["Timestamp", "Name", "Age", "Sex", "Phone", "Email", "Completion%", "RiskLevel"];
+        const allHeaders = [...baseHeaders];
+
+        // Add all checkbox options as column headers
+        Object.values(checkboxOptions).forEach(sectionOptions => {
+            sectionOptions.forEach(option => {
+                allHeaders.push(option);
+            });
+        });
+
+        // Get or create worksheet
         let sheet = workbook.getWorksheet("Submissions");
         if (!sheet) {
             sheet = workbook.addWorksheet("Submissions");
-            sheet.addRow(["Timestamp", "Name", "Age", "Sex", "Phone", "Email", "Selections"]);
+            sheet.addRow(allHeaders);
         }
 
-        // Add new submission
-        sheet.addRow([
+        // Prepare row data with base information
+        const rowData = [
             new Date().toLocaleString(),
             formData.name,
             formData.age,
             formData.sex,
             formData.phone,
             formData.email,
-            JSON.stringify(formData)
-        ]);
+            completionPercentage,
+            riskLevel.toUpperCase()
+        ];
+
+        // Add checkbox selections (Yes/No for each option)
+        Object.values(checkboxOptions).forEach(sectionOptions => {
+            sectionOptions.forEach(option => {
+                // Check if this option was selected in the form data
+                let isSelected = false;
+                
+                // Check all sections for this selection
+                for (const sectionKey of Object.keys(sectionTitles)) {
+                    if (formData[sectionKey]) {
+                        const selections = Array.isArray(formData[sectionKey]) 
+                            ? formData[sectionKey] 
+                            : [formData[sectionKey]];
+                            
+                        if (selections.includes(option)) {
+                            isSelected = true;
+                            break;
+                        }
+                    }
+                }
+                
+                rowData.push(isSelected ? "Yes" : "No");
+            });
+        });
+
+        // Add the complete row
+        sheet.addRow(rowData);
 
         // Save Excel to S3
         const excelBuffer = await workbook.xlsx.writeBuffer();
@@ -257,124 +376,338 @@ app.post("/submit", upload.none(), async (req, res) => {
         const timestamp = Date.now();
         const pdfFileName = `IBS_${timestamp}.pdf`;
         const pdfPath = path.join(pdfDir, pdfFileName);
-        
+
         // Create a new PDFDocument
         const pdfDoc = await PDFDocument.create();
-        const pages = [pdfDoc.addPage([595, 842])]; // A4 size
-        
+        const page = pdfDoc.addPage([595, 842]); // A4 size - single page
+
         // Register fontkit for custom font support
         pdfDoc.registerFontkit(fontkit);
-        
-        // Use Times-Roman which has better Unicode support than Helvetica
-        const helveticaFont = pdfDoc.embedStandardFont(StandardFonts.TimesRoman);
-        const helveticaBold = pdfDoc.embedStandardFont(StandardFonts.TimesRomanBold);
-        
-        let currentPage = 0;
-        let yPosition = 800; // Start near the top of the page
-        
-        // Header
-        pages[currentPage].drawText("IBS Diagnosis Checklist", {
-            x: 50,
-            y: yPosition,
-            size: 18,
-            font: helveticaBold,
-        });
-        yPosition -= 30;
-        
-        // Patient Info
-        pages[currentPage].drawText(`Name: ${formData.name || ""}`, {
-            x: 50,
-            y: yPosition,
-            size: 12,
-            font: helveticaFont,
-        });
-        yPosition -= 20;
-        
-        pages[currentPage].drawText(`Age: ${formData.age || ""}`, {
-            x: 50,
-            y: yPosition,
-            size: 12,
-            font: helveticaFont,
-        });
-        yPosition -= 20;
-        
-        pages[currentPage].drawText(`Sex: ${formData.sex || ""}`, {
-            x: 50,
-            y: yPosition,
-            size: 12,
-            font: helveticaFont,
-        });
-        yPosition -= 20;
-        
-        pages[currentPage].drawText(`Phone: ${formData.phone || ""}`, {
-            x: 50,
-            y: yPosition,
-            size: 12,
-            font: helveticaFont,
-        });
-        yPosition -= 20;
-        
-        pages[currentPage].drawText(`Email: ${formData.email || ""}`, {
-            x: 50,
-            y: yPosition,
-            size: 12,
-            font: helveticaFont,
-        });
-        yPosition -= 30;
-        
-        // Loop over each section
-        for (const secKey of Object.keys(sectionTitles)) {
-            if (yPosition < 100) {
-                // Add a new page if we're running out of space
-                pages.push(pdfDoc.addPage([595, 842]));
-                currentPage++;
-                yPosition = 800;
+
+        // Load Roboto fonts
+        let robotoRegular, robotoBold, robotoItalic;
+
+        try {
+            // Load Roboto Regular
+            const robotoRegularPath = path.join(__dirname, 'fonts', 'Roboto-Regular.ttf');
+            const robotoRegularBytes = fs.readFileSync(robotoRegularPath);
+            robotoRegular = await pdfDoc.embedFont(robotoRegularBytes);
+            
+            // Load Roboto Bold
+            const robotoBoldPath = path.join(__dirname, 'fonts', 'Roboto-Bold.ttf');
+            const robotoBoldBytes = fs.readFileSync(robotoBoldPath);
+            robotoBold = await pdfDoc.embedFont(robotoBoldBytes);
+            
+            // Load Roboto Italic
+            const robotoItalicPath = path.join(__dirname, 'fonts', 'Roboto-Italic.ttf');
+            const robotoItalicBytes = fs.readFileSync(robotoItalicPath);
+            robotoItalic = await pdfDoc.embedFont(robotoItalicBytes);
+            
+            console.log('Roboto fonts loaded successfully');
+        } catch (error) {
+            console.error('Error loading Roboto fonts:', error);
+            // Fallback to standard fonts
+            robotoRegular = pdfDoc.embedStandardFont(StandardFonts.Helvetica);
+            robotoBold = pdfDoc.embedStandardFont(StandardFonts.HelveticaBold);
+            robotoItalic = pdfDoc.embedStandardFont(StandardFonts.HelveticaOblique);
+            console.log('Using fallback Helvetica fonts');
+        }
+
+        let yPosition = 820; // Start near the top of the page
+
+        // Load and embed logos
+        let logo1, logo2;
+        let logo1Dims, logo2Dims;
+        try {
+            const logo1Path = path.join(__dirname, 'public', 'images', 'Blue logo progenics.png');
+            const logo2Path = path.join(__dirname, 'public', 'images', 'Gut Genics logo.png');
+            
+            if (fs.existsSync(logo1Path)) {
+                const logo1Image = fs.readFileSync(logo1Path);
+                logo1 = await pdfDoc.embedPng(logo1Image);
+                logo1Dims = logo1.scale(0.12);
             }
             
-            // Section title
-            pages[currentPage].drawText(sectionTitles[secKey], {
-                x: 50,
-                y: yPosition,
+            if (fs.existsSync(logo2Path)) {
+                const logo2Image = fs.readFileSync(logo2Path);
+                logo2 = await pdfDoc.embedPng(logo2Image);
+                logo2Dims = logo2.scale(0.12);
+            }
+        } catch (error) {
+            console.log('Logos not found, proceeding without them');
+        }
+
+        // Draw logos and title
+        const logoHeight = 30;
+        let logo1Width = 0;
+        let logo2Width = 0;
+
+        if (logo1 && logo2 && logo1Dims && logo2Dims) {
+            logo1Width = (logo1Dims.width / logo1Dims.height) * logoHeight;
+            logo2Width = (logo2Dims.width / logo2Dims.height) * logoHeight;
+            
+            const logo1X = 50;
+            const logo2X = 595 - logo2Width - 50;
+            
+            // Draw logos
+            page.drawImage(logo1, {
+                x: logo1X,
+                y: yPosition - logoHeight,
+                width: logo1Width,
+                height: logoHeight
+            });
+            
+            page.drawImage(logo2, {
+                x: logo2X,
+                y: yPosition - logoHeight,
+                width: logo2Width,
+                height: logoHeight
+            });
+            
+            // Draw title centered
+            const headingText = "IBS DIAGNOSIS CHECKLIST";
+            page.drawText(headingText, {
+                x: (595 - headingText.length * 7) / 2,
+                y: yPosition - 25,
                 size: 14,
-                font: helveticaBold,
+                font: robotoBold,
+                color: rgb(0.2, 0.4, 0.6)
             });
-            
-            // Underline manually since underline option isn't available in standard fonts
-            const textWidth = sectionTitles[secKey].length * 7; // Approximate width calculation
-            pages[currentPage].drawLine({
-                start: { x: 50, y: yPosition - 2 },
-                end: { x: 50 + textWidth, y: yPosition - 2 },
-                thickness: 1,
-                color: rgb(0, 0, 0),
+            yPosition = yPosition - logoHeight - 40;
+        } else {
+            // Center the heading if logos are not available
+            const headingText = "IBS DIAGNOSIS CHECKLIST";
+            page.drawText(headingText, {
+                x: (595 - headingText.length * 7) / 2,
+                y: yPosition - 25,
+                size: 14,
+                font: robotoBold,
+                color: rgb(0.2, 0.4, 0.6)
             });
+            yPosition -= 40;
+        }
+
+        // Patient Info Box
+        page.drawRectangle({
+            x: 40,
+            y: yPosition - 60,
+            width: 515,
+            height: 50,
+            color: rgb(0.95, 0.95, 0.95),
+            borderColor: rgb(0.7, 0.7, 0.7),
+            borderWidth: 1,
+        });
+
+        page.drawText("PATIENT INFORMATION", {
+            x: 50,
+            y: yPosition - 20,
+            size: 10,
+            font: robotoBold,
+            color: rgb(0.2, 0.2, 0.2)
+        });
+
+        // Patient Info in two columns
+        page.drawText(`Name: ${formData.name || "Not provided"}`, {
+            x: 50,
+            y: yPosition - 35,
+            size: 9,
+            font: robotoRegular,
+        });
+
+        page.drawText(`Age: ${formData.age || "Not provided"}`, {
+            x: 50,
+            y: yPosition - 45,
+            size: 9,
+            font: robotoRegular,
+        });
+
+        page.drawText(`Sex: ${formData.sex || "Not provided"}`, {
+            x: 50,
+            y: yPosition - 55,
+            size: 9,
+            font: robotoRegular,
+        });
+
+        page.drawText(`Phone: ${formData.phone || "Not provided"}`, {
+            x: 250,
+            y: yPosition - 35,
+            size: 9,
+            font: robotoRegular,
+        });
+
+        page.drawText(`Email: ${formData.email || "Not provided"}`, {
+            x: 250,
+            y: yPosition - 45,
+            size: 9,
+            font: robotoRegular,
+        });
+
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, {
+            x: 250,
+            y: yPosition - 55,
+            size: 9,
+            font: robotoRegular,
+        });
+
+        yPosition -= 100;
+
+        // Loop over each section
+        // for (const secKey of Object.keys(sectionTitles)) {
+        //     // Section title with background
+        //     page.drawRectangle({
+        //         x: 40,
+        //         y: yPosition - 15,
+        //         width: 515,
+        //         height: 20,
+        //         color: rgb(0.2, 0.4, 0.6),
+        //     });
+
+        //     page.drawText(sectionTitles[secKey], {
+        //         x: 50,
+        //         y: yPosition - 10,
+        //         size: 9,
+        //         font: robotoBold,
+        //         color: rgb(1, 1, 1)
+        //     });
+
+        //     yPosition -= 28;
             
-            yPosition -= 25;
+        //     // User's selections
+        //     const selected = formData[secKey]
+        //         ? Array.isArray(formData[secKey]) ? formData[secKey] : [formData[secKey]]
+        //         : [];
+            
+        //     // Create checkboxes in horizontal layout
+        //     const options = checkboxOptions[secKey];
+        //     const columnCount = 3;
+            
+        //     // Calculate column width to ensure proper spacing
+        //     const columnWidth = 515 / columnCount;
+        //     const checkboxWidth = 10;
+        //     const textPadding = 5;
+            
+        //     for (let i = 0; i < options.length; i++) {
+        //         const label = options[i];
+        //         const isChecked = selected.includes(label);
+                
+        //         // Determine column and row position
+        //         const column = i % columnCount;
+        //         const row = Math.floor(i / columnCount);
+                
+        //         // Calculate x position with proper spacing
+        //         const xPosition = 50 + (column * columnWidth);
+                
+        //         // Create a checkbox
+        //         const fieldName = `${secKey}-${label.substring(0, 20).replace(/\s+/g, '-')}-${i}`;
+        //         const form = pdfDoc.getForm();
+        //         const checkbox = form.createCheckBox(fieldName);
+        //         checkbox.addToPage(page, {
+        //             x: xPosition,
+        //             y: yPosition - (row * 15) - 2,
+        //             width: checkboxWidth,
+        //             height: 10,
+        //             borderColor: rgb(0.2, 0.4, 0.6),
+        //             backgroundColor: rgb(0.95, 0.95, 0.95),
+        //         });
+                
+        //         // Check if selected
+        //         if (isChecked) {
+        //             checkbox.check();
+        //         }
+                
+        //         // Calculate maximum text width based on column width
+        //         const maxTextWidth = columnWidth - checkboxWidth - textPadding - 10;
+                
+        //         // Add label text
+        //         page.drawText(label, {
+        //             x: xPosition + checkboxWidth + textPadding,
+        //             y: yPosition - (row * 15),
+        //             size: 9,
+        //             font: robotoRegular,
+        //             maxWidth: maxTextWidth,
+        //             lineHeight: 10,
+        //         });
+        //     }
+            
+        //     const longestColumn = Math.ceil(options.length / columnCount);
+
+        //     // Use consistent base spacing for all sections
+        //     const baseRowHeight = 20;
+        //     const baseSectionPadding = 20;
+
+        //     // Apply the same spacing formula to all sections
+        //     let sectionSpacing = (longestColumn * baseRowHeight) + baseSectionPadding;
+
+        //     // Apply the spacing
+        //     yPosition -= sectionSpacing;
+        // }
+        for (const secKey of Object.keys(sectionTitles)) {
+            // Section title with background
+            page.drawRectangle({
+                x: 40,
+                y: yPosition - 15,
+                width: 515,
+                height: 20,
+                color: rgb(0.2, 0.4, 0.6),
+            });
+
+            page.drawText(sectionTitles[secKey], {
+                x: 50,
+                y: yPosition - 10,
+                size: 9,
+                font: robotoBold,
+                color: rgb(1, 1, 1)
+            });
+
+            yPosition -= 28;
             
             // User's selections
             const selected = formData[secKey]
                 ? Array.isArray(formData[secKey]) ? formData[secKey] : [formData[secKey]]
                 : [];
             
-            // Create checkboxes for each option
-            for (const label of checkboxOptions[secKey]) {
-                if (yPosition < 50) {
-                    // Add a new page if we're running out of space
-                    pages.push(pdfDoc.addPage([595, 842]));
-                    currentPage++;
-                    yPosition = 800;
-                }
-                
+            // Create checkboxes in horizontal layout
+            const options = checkboxOptions[secKey];
+            const columnCount = 3;
+            
+            // Calculate column width to ensure proper spacing
+            const columnWidth = 515 / columnCount;
+            const checkboxWidth = 10;
+            const textPadding = 5;
+            
+            // Track row heights for this section
+            const rowHeights = [];
+            
+            for (let i = 0; i < options.length; i++) {
+                const label = options[i];
                 const isChecked = selected.includes(label);
                 
-                // Create a checkbox with a simplified field name
-                const fieldName = `${secKey}-${label.substring(0, 20).replace(/\s+/g, '-')}`;
+                // Determine column and row position
+                const column = i % columnCount;
+                const row = Math.floor(i / columnCount);
+                
+                // Calculate x position with proper spacing
+                const xPosition = 50 + (column * columnWidth);
+                
+                // Calculate maximum text width based on column width
+                const maxTextWidth = columnWidth - checkboxWidth - textPadding - 10;
+                
+                // Calculate how many lines this label will need
+                const labelLines = wrapText(label, maxTextWidth, 9);
+                const lineCount = labelLines.length;
+                const itemHeight = Math.max(15, lineCount * 10); // At least 15 units, or more for multi-line labels
+                
+                // Create a checkbox
+                const fieldName = `${secKey}-${label.substring(0, 20).replace(/\s+/g, '-')}-${i}`;
                 const form = pdfDoc.getForm();
                 const checkbox = form.createCheckBox(fieldName);
-                checkbox.addToPage(pages[currentPage], {
-                    x: 50,
-                    y: yPosition - 2,
-                    width: 12,
-                    height: 12,
+                checkbox.addToPage(page, {
+                    x: xPosition,
+                    y: yPosition - (row * 20) - 2, // Increased row spacing to 20
+                    width: checkboxWidth,
+                    height: 10,
+                    borderColor: rgb(0.2, 0.4, 0.6),
+                    backgroundColor: rgb(0.95, 0.95, 0.95),
                 });
                 
                 // Check if selected
@@ -382,27 +715,161 @@ app.post("/submit", upload.none(), async (req, res) => {
                     checkbox.check();
                 }
                 
-                // Add label text
-                pages[currentPage].drawText(label, {
-                    x: 70,
-                    y: yPosition,
-                    size: 12,
-                    font: helveticaFont,
-                });
+                // Add label text - handle multi-line labels
+                let textY = yPosition - (row * 20) + 2; // Position text slightly lower
                 
-                yPosition -= 20;
+                for (let lineIndex = 0; lineIndex < lineCount; lineIndex++) {
+                    page.drawText(labelLines[lineIndex], {
+                        x: xPosition + checkboxWidth + textPadding,
+                        y: textY - (lineIndex * 10), // Move up for each additional line
+                        size: 9,
+                        font: robotoRegular,
+                        maxWidth: maxTextWidth,
+                    });
+                }
+                
+                // Track the maximum height needed for this row across all columns
+                if (!rowHeights[row]) {
+                    rowHeights[row] = itemHeight;
+                } else {
+                    rowHeights[row] = Math.max(rowHeights[row], itemHeight);
+                }
             }
             
-            yPosition -= 10; // Add some space between sections
+            // Adjust yPosition based on the actual row heights
+            let totalHeight = 0;
+            for (let row = 0; row < rowHeights.length; row++) {
+                totalHeight += rowHeights[row] + 2; // Add 5 units of padding between rows
+            }
+
+            // Use consistent base spacing for all sections
+            const baseSectionPadding = 25;
+
+            // Apply the spacing
+            yPosition -= totalHeight + baseSectionPadding;
         }
-        
+        // ===== ASSESSMENT RESULTS SECTION AT THE END =====
+        if (yPosition < 150) {
+            yPosition = 150;
+        }
+
+        // Section box
+        page.drawRectangle({
+            x: 40,
+            y: yPosition - 90,
+            width: 515,
+            height: 80,
+            color: rgb(0.95, 0.95, 0.95),
+            borderColor: rgb(0.7, 0.7, 0.7),
+            borderWidth: 1,
+        });
+
+        page.drawText("ASSESSMENT RESULTS", {
+            x: 50,
+            y: yPosition - 25,
+            size: 11,
+            font: robotoBold,
+            color: rgb(0.2, 0.2, 0.2)
+        });
+
+        // Risk level with color coding
+        let riskColor;
+        switch (riskLevel) {
+            case "high":
+                riskColor = rgb(1, 0, 0);
+                break;
+            case "moderate":
+                riskColor = rgb(0.9, 0.6, 0);
+                break;
+            default:
+                riskColor = rgb(0.1, 0.6, 0.2);
+        }
+
+        page.drawText(`Risk Level: ${riskLevel.toUpperCase()}`, {
+            x: 50,
+            y: yPosition - 40,
+            size: 10,
+            font: robotoBold,
+            color: riskColor
+        });
+
+        // Risk message with proper formatting
+        page.drawText("Assessment:", {
+            x: 50,
+            y: yPosition - 55,
+            size: 9,
+            font: robotoBold,
+            color: rgb(0.2, 0.2, 0.2)
+        });
+
+        // Wrap the risk message properly with consistent line spacing
+        const riskMessageLines = wrapText1(riskMessage, 120);
+        riskMessageLines.forEach((line, index) => {
+            page.drawText(line, {
+                x: 50,
+                y: yPosition - 67 - (index * 12),
+                size: 9,
+                font: robotoRegular,
+                color: rgb(0.2, 0.2, 0.2)
+            });
+        });
+
+        yPosition -= (90 + (riskMessageLines.length * 12));
+
+        // ===== DISCLAIMER SECTION =====
+        const disclaimerText = "Disclaimer: This tool is for educational purposes only and is not a medical diagnosis. Always consult a healthcare professional for any health concerns or symptoms. The final diagnosis must be made by a qualified clinician.";
+
+        // Draw a separator line
+        page.drawLine({
+            start: { x: 40, y: yPosition },
+            end: { x: 555, y: yPosition },
+            thickness: 1,
+            color: rgb(0.7, 0.7, 0.7),
+        });
+
+        yPosition -= 15;
+
+        // Draw disclaimer text with proper wrapping
+        const disclaimerLines = wrapText1(disclaimerText, 150);
+        disclaimerLines.forEach((line, index) => {
+            page.drawText(line, {
+                x: 50,
+                y: yPosition - (index * 12),
+                size: 8,
+                font: robotoItalic,
+                color: rgb(0.5, 0.5, 0.5)
+            });
+        });
+
+        yPosition -= (disclaimerLines.length * 12 + 20);
+
+        // ===== FOOTER WITH CONTACT INFO =====
+        // Left side: Email
+        page.drawText("connect@progenicslabs.com", {
+            x: 50,
+            y: 30,
+            size: 9,
+            font: robotoItalic,
+            color: rgb(0.5, 0.5, 0.5)
+        });
+
+        // Right side: Website
+        const websiteText = "www.progenicslabs.com";
+        const websiteWidth = websiteText.length * 5;
+        page.drawText(websiteText, {
+            x: 595 - websiteWidth - 50,
+            y: 30,
+            size: 9,
+            font: robotoItalic,
+            color: rgb(0.5, 0.5, 0.5)
+        });
+
         // Save the PDF
         const pdfBytes = await pdfDoc.save();
-
         // Save locally
         fs.writeFileSync(pdfPath, pdfBytes);
 
-        try {
+       try {
             // Upload to S3
             const s3Url = await uploadToS3(pdfBytes, pdfFileName);
             
@@ -418,30 +885,70 @@ app.post("/submit", upload.none(), async (req, res) => {
                 success: true, 
                 message: "Form submitted successfully and email sent", 
                 pdfUrl: s3Url,
-                localPath: pdfPath
+                localPath: pdfPath,
+                completionPercentage,
+                riskLevel
             });
-        } catch (s3Error) {
-            console.error('S3 upload error:', s3Error);
-            
-            // Try to send email even if S3 upload fails
-            try {
-                await sendEmailWithPDF(formData.email, pdfBytes, formData);
-                console.log('Email sent successfully to:', formData.email);
-            } catch (emailError) {
-                console.error('Error sending email:', emailError);
-            }
 
-            res.json({ 
-                success: true, 
-                message: "Form submitted and email sent (S3 upload failed)", 
-                localPath: pdfPath
-            });
-        }
+        } catch (uploadError) {
+            console.error("Error uploading PDF or sending response:", uploadError);
+            res.status(500).json({ success: false, message: "Upload failed: " + uploadError.message });
+        }  // <-- THIS was missing in your code
     } catch (error) {
         console.error("Error processing form:", error);
         res.status(500).json({ success: false, message: "Error processing form: " + error.message });
     }
 });
+
+// Helper function to wrap text and calculate lines
+function wrapText(text, maxWidth, fontSize) {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+    
+    // Approximate width calculation based on font size
+    // This is a rough estimate - adjust based on your specific font
+    const avgCharWidth = fontSize * 0.55;
+    const maxChars = Math.floor(maxWidth / avgCharWidth);
+    
+    for (let i = 0; i < words.length; i++) {
+        const testLine = currentLine ? `${currentLine} ${words[i]}` : words[i];
+        
+        if (testLine.length <= maxChars || !currentLine) {
+            currentLine = testLine;
+        } else {
+            lines.push(currentLine);
+            currentLine = words[i];
+        }
+    }
+    
+    if (currentLine) {
+        lines.push(currentLine);
+    }
+    
+    return lines;
+}
+// Helper function to wrap text
+function wrapText1(text, maxLineLength) {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    words.forEach(word => {
+        if ((currentLine + word).length > maxLineLength && currentLine.length > 0) {
+            lines.push(currentLine.trim());
+            currentLine = word + ' ';
+        } else {
+            currentLine += word + ' ';
+        }
+    });
+    
+    if (currentLine) {
+        lines.push(currentLine.trim());
+    }
+    
+    return lines;
+}
 
 // Route to get PDF from S3
 app.get('/pdf/:filename', async (req, res) => {
