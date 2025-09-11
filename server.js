@@ -388,25 +388,21 @@ app.post("/submit", upload.none(), async (req, res) => {
         let robotoRegular, robotoBold, robotoItalic;
 
         try {
-            // Load Roboto Regular
             const robotoRegularPath = path.join(__dirname, 'fonts', 'Roboto-Regular.ttf');
             const robotoRegularBytes = fs.readFileSync(robotoRegularPath);
             robotoRegular = await pdfDoc.embedFont(robotoRegularBytes);
-            
-            // Load Roboto Bold
+
             const robotoBoldPath = path.join(__dirname, 'fonts', 'Roboto-Bold.ttf');
             const robotoBoldBytes = fs.readFileSync(robotoBoldPath);
             robotoBold = await pdfDoc.embedFont(robotoBoldBytes);
-            
-            // Load Roboto Italic
+
             const robotoItalicPath = path.join(__dirname, 'fonts', 'Roboto-Italic.ttf');
             const robotoItalicBytes = fs.readFileSync(robotoItalicPath);
             robotoItalic = await pdfDoc.embedFont(robotoItalicBytes);
-            
+
             console.log('Roboto fonts loaded successfully');
         } catch (error) {
             console.error('Error loading Roboto fonts:', error);
-            // Fallback to standard fonts
             robotoRegular = pdfDoc.embedStandardFont(StandardFonts.Helvetica);
             robotoBold = pdfDoc.embedStandardFont(StandardFonts.HelveticaBold);
             robotoItalic = pdfDoc.embedStandardFont(StandardFonts.HelveticaOblique);
@@ -415,28 +411,21 @@ app.post("/submit", upload.none(), async (req, res) => {
 
         let yPosition = 820; // Start near the top of the page
 
-        // Load and embed logos
+        // ✅ Load and embed logos properly
         let logo1, logo2;
         let logo1Dims, logo2Dims;
         try {
-            // const logo1Path = path.join(__dirname, 'public', 'images', 'Blue logo progenics.png');
-            // const logo2Path = path.join(__dirname, 'public', 'images', 'Gut Genics logo.png');
-            const logo1Path = 'https://ibs-checklist-form.onrender.com/Images/Blue%20logo%20progenics.png';
-            const logo2Path = 'https://ibs-checklist-form.onrender.com/Images/Gut%20Genics%20logo.png';
-            
-            if (fs.existsSync(logo1Path)) {
-                const logo1Image = fs.readFileSync(logo1Path);
-                logo1 = await pdfDoc.embedPng(logo1Image);
-                logo1Dims = logo1.scale(0.12);
-            }
-            
-            if (fs.existsSync(logo2Path)) {
-                const logo2Image = fs.readFileSync(logo2Path);
-                logo2 = await pdfDoc.embedPng(logo2Image);
-                logo2Dims = logo2.scale(0.12);
-            }
+            const logo1Bytes = fs.readFileSync(path.join(__dirname, 'public', 'images', 'Blue logo progenics.png'));
+            logo1 = await pdfDoc.embedPng(logo1Bytes);
+            logo1Dims = logo1.scale(0.12);
+
+            const logo2Bytes = fs.readFileSync(path.join(__dirname, 'public', 'images', 'Gut Genics logo.png'));
+            logo2 = await pdfDoc.embedPng(logo2Bytes);
+            logo2Dims = logo2.scale(0.12);
+
+            console.log("Logos embedded successfully");
         } catch (error) {
-            console.log('Logos not found, proceeding without them');
+            console.error("Error embedding logos:", error);
         }
 
         // Draw logos and title
@@ -447,26 +436,24 @@ app.post("/submit", upload.none(), async (req, res) => {
         if (logo1 && logo2 && logo1Dims && logo2Dims) {
             logo1Width = (logo1Dims.width / logo1Dims.height) * logoHeight;
             logo2Width = (logo2Dims.width / logo2Dims.height) * logoHeight;
-            
+
             const logo1X = 50;
             const logo2X = 595 - logo2Width - 50;
-            
-            // Draw logos
+
             page.drawImage(logo1, {
                 x: logo1X,
                 y: yPosition - logoHeight,
                 width: logo1Width,
                 height: logoHeight
             });
-            
+
             page.drawImage(logo2, {
                 x: logo2X,
                 y: yPosition - logoHeight,
                 width: logo2Width,
                 height: logoHeight
             });
-            
-            // Draw title centered
+
             const headingText = "IBS DIAGNOSIS CHECKLIST";
             page.drawText(headingText, {
                 x: (595 - headingText.length * 7) / 2,
@@ -477,7 +464,6 @@ app.post("/submit", upload.none(), async (req, res) => {
             });
             yPosition = yPosition - logoHeight - 40;
         } else {
-            // Center the heading if logos are not available
             const headingText = "IBS DIAGNOSIS CHECKLIST";
             page.drawText(headingText, {
                 x: (595 - headingText.length * 7) / 2,
