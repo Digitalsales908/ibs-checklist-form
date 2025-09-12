@@ -8,29 +8,31 @@ function updateOverallProgress() {
     'Smooth, soft sausage or snake',
     'Soft blobs with clear-cut edges'
   ];
-  
-  // Filter out type 3,4,5 options from total count and checked count
+
   const validCheckboxes = [...allCheckboxes].filter(cb => {
     const label = cb.parentElement.textContent.trim();
     return !nullTypeOptions.some(option => label.includes(option));
   });
-  
+
   const totalChecked = validCheckboxes.filter(cb => cb.checked).length;
   const totalCheckboxes = validCheckboxes.length || 0;
-  const overallPercent = totalCheckboxes === 0 ? 0 : Math.round((totalChecked / totalCheckboxes) * 100);
+  const overallPercent = totalCheckboxes === 0 ? 0 : (totalChecked / totalCheckboxes) * 100;
 
   const overallPercentageText = document.getElementById('overall-percentage');
+  const hiddenField = document.getElementById('overall-percentage-value');
   const currentRiskLabel = document.getElementById('current-risk-label');
   const lowRiskMessage = document.getElementById('low-risk-message');
   const moderateRiskMessage = document.getElementById('moderate-risk-message');
   const highRiskMessage = document.getElementById('high-risk-message');
 
   if (overallPercentageText && currentRiskLabel) {
-    overallPercentageText.textContent = overallPercent + '%';
+    // ✅ Show exact value with 2 decimals
+    overallPercentageText.textContent = overallPercent.toFixed(0) + '%';
 
-    // Clear existing risk classes
+    // ✅ Save raw number for backend
+    if (hiddenField) hiddenField.value = Math.round(overallPercent); 
+    // (keep your existing risk level + messages logic here)
     currentRiskLabel.classList.remove('no-risk', 'low-risk', 'moderate-risk', 'high-risk');
-    // Update a compact progress bar (if present)
     const overallFill = document.getElementById('overall-progress-fill');
     if (overallFill) {
       overallFill.style.width = overallPercent + '%';
@@ -57,7 +59,6 @@ function updateOverallProgress() {
         if (moderateRiskMessage) moderateRiskMessage.style.display = 'none';
         if (highRiskMessage) highRiskMessage.style.display = 'block';
       } else {
-        // overallPercent === 0 -> show no label and default fill color
         overallFill.classList.remove('low', 'moderate', 'high');
         currentRiskLabel.textContent = '';
         if (lowRiskMessage) lowRiskMessage.style.display = 'none';

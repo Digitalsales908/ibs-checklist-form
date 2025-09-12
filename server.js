@@ -75,9 +75,10 @@ const getExcelFromS3 = async (fileName) => {
 
 // Function to send email with PDF attachment
 const sendEmailWithPDF = async (recipientEmail, pdfBuffer, formData) => {
-    const completionPercentage = calculateCompletionPercentage(formData);
-    const riskLevel = determineRiskLevel(formData);
-    
+    // Use the exact value submitted by the form
+    const completionPercentage = parseInt(formData.completionPercentage || formData.overallPercentage || 0, 10);
+    const riskLevel = determineRiskLevel(Number(completionPercentage)); // For risk logic only
+
     const mailOptions = {
         from: `"Progenics Medical Center" <${process.env.EMAIL_USER}>`,
         to: recipientEmail,
@@ -96,14 +97,6 @@ const sendEmailWithPDF = async (recipientEmail, pdfBuffer, formData) => {
                         riskLevel === 'moderate' ? '#ffc107' : '#28a745'
                     }; font-weight: bold;">${riskLevel.toUpperCase()}</span></p>
                 </div>
-                
-                <p>Please review the attached document carefully. If you have any questions or concerns about your results, don't hesitate to contact us.</p>
-                <p style="margin-top: 20px;">Best regards,<br>Medical Team<br>Progenics Laboratories Private Limited</p>
-                <hr>
-                <p style="font-size: 12px; color: #666;">
-                    This is an automated message. Please do not reply to this email.<br>
-                    For any inquiries, please contact our office directly.
-                </p>
             </div>
         `,
         attachments: [{
@@ -114,6 +107,8 @@ const sendEmailWithPDF = async (recipientEmail, pdfBuffer, formData) => {
 
     return transporter.sendMail(mailOptions);
 };
+
+
 
 // Utility function to upload file to S3
 const uploadToS3 = async (fileBuffer, fileName) => {
@@ -211,32 +206,40 @@ const calculateCompletionPercentage = (formData) => {
             selectedOptions += Array.isArray(formData[secKey]) ? formData[secKey].length : 1;
         }
     }
-    
-    return totalOptions > 0 ? Math.round((selectedOptions / totalOptions) * 100) : 0;
+
+    // Use Math.round instead of Math.floor
+    return totalOptions > 0 
+        ? Math.round((selectedOptions / totalOptions) * 100) 
+        : 0;
 };
 
-// Function to determine risk level based on selections
-const determineRiskLevel = (formData) => {
-    // Count warning signs (section 4)
-    const warningSigns = formData["sec-4"] 
-        ? (Array.isArray(formData["sec-4"]) ? formData["sec-4"].length : 1)
-        : 0;
+// // Function to determine risk level based on selections
+// const determineRiskLevel = (formData) => {
+//     // Count warning signs (section 4)
+//     const warningSigns = formData["sec-4"] 
+//         ? (Array.isArray(formData["sec-4"]) ? formData["sec-4"].length : 1)
+//         : 0;
     
-    // Count pathophysiology factors (section 2)
-    const pathophysiologyFactors = formData["sec-2"]
-        ? (Array.isArray(formData["sec-2"]) ? formData["sec-2"].length : 1)
-        : 0;
+//     // Count pathophysiology factors (section 2)
+//     const pathophysiologyFactors = formData["sec-2"]
+//         ? (Array.isArray(formData["sec-2"]) ? formData["sec-2"].length : 1)
+//         : 0;
     
-    // Simple risk assessment logic
-    if (warningSigns >= 3) {
-        return "high";
-    } else if (warningSigns >= 1 || pathophysiologyFactors >= 4) {
-        return "moderate";
-    } else {
-        return "low";
-    }
-};
-
+//     // Simple risk assessment logic
+//     if (warningSigns >= 3) {
+//         return "high";
+//     } else if (warningSigns >= 1 || pathophysiologyFactors >= 4) {
+//         return "moderate";
+//     } else {
+//         return "low";
+//     }
+// };
+function determineRiskLevel(completionPercentage) {
+    if (completionPercentage >= 41) return "high";
+    if (completionPercentage >= 21) return "moderate";
+    if (completionPercentage >= 1) return "low";
+    return "low"; // fallback for 0
+}
 // Function to get risk message based on risk level
 const getRiskMessage = (riskLevel) => {
     switch (riskLevel) {
@@ -272,8 +275,8 @@ app.post("/submit", upload.none(), async (req, res) => {
         }
 
         // Calculate assessment results
-        const completionPercentage = calculateCompletionPercentage(formData);
-        const riskLevel = determineRiskLevel(formData);
+        const completionPercentage = parseFloat(req.body.overallPercentage) || 0; // exact form value
+        const riskLevel = determineRiskLevel(completionPercentage);
         const riskMessage = getRiskMessage(riskLevel);
 
         // Handle Excel
@@ -741,26 +744,82 @@ app.post("/submit", upload.none(), async (req, res) => {
             yPosition = 150;
         }
 
-        // Section box
+        // // Section box
+        // page.drawRectangle({
+        //     x: 40,
+        //     y: yPosition - 90,
+        //     width: 515,
+        //     height: 80,
+        //     color: rgb(0.95, 0.95, 0.95),
+        //     borderColor: rgb(0.7, 0.7, 0.7),
+        //     borderWidth: 1,
+        // });
+
+        // page.drawText("ASSESSMENT RESULTS", {
+        //     x: 50,
+        //     y: yPosition - 25,
+        //     size: 11,
+        //     font: robotoBold,
+        //     color: rgb(0.2, 0.2, 0.2)
+        // });
+
+        // // Risk level with color coding
+        // let riskColor;
+        // switch (riskLevel) {
+        //     case "high":
+        //         riskColor = rgb(1, 0, 0);
+        //         break;
+        //     case "moderate":
+        //         riskColor = rgb(0.9, 0.6, 0);
+        //         break;
+        //     default:
+        //         riskColor = rgb(0.1, 0.6, 0.2);
+        // }
+
+        // page.drawText(`Risk Level: ${riskLevel.toUpperCase()}`, {
+        //     x: 50,
+        //     y: yPosition - 40,
+        //     size: 10,
+        //     font: robotoBold,
+        //     color: riskColor
+        // });
+
+        // // Risk message with proper formatting
+        // page.drawText("Assessment:", {
+        //     x: 50,
+        //     y: yPosition - 55,
+        //     size: 9,
+        //     font: robotoBold,
+        //     color: rgb(0.2, 0.2, 0.2)
+        // });
+
+        // Wrap the risk message properly with consistent line spacing
+       // Calculate required height for assessment section
+        // Calculate space needed for assessment section
+        const riskMessageLines = wrapText(riskMessage, 550, 9);
+        const assessmentHeight = 70 + (riskMessageLines.length * 11); // Reduced height
+
+        // Section box - more compact design
         page.drawRectangle({
             x: 40,
-            y: yPosition - 90,
+            y: yPosition - assessmentHeight,
             width: 515,
-            height: 80,
+            height: assessmentHeight,
             color: rgb(0.95, 0.95, 0.95),
             borderColor: rgb(0.7, 0.7, 0.7),
             borderWidth: 1,
         });
 
+        // Compact assessment layout
         page.drawText("ASSESSMENT RESULTS", {
             x: 50,
-            y: yPosition - 25,
-            size: 11,
+            y: yPosition - 18, // Moved up
+            size: 10, // Smaller font
             font: robotoBold,
             color: rgb(0.2, 0.2, 0.2)
         });
 
-        // Risk level with color coding
+        // Risk level with color coding - compact placement
         let riskColor;
         switch (riskLevel) {
             case "high":
@@ -775,39 +834,36 @@ app.post("/submit", upload.none(), async (req, res) => {
 
         page.drawText(`Risk Level: ${riskLevel.toUpperCase()}`, {
             x: 50,
-            y: yPosition - 40,
-            size: 10,
+            y: yPosition - 32, // Moved up
+            size: 9, // Smaller font
             font: robotoBold,
             color: riskColor
         });
 
-        // Risk message with proper formatting
+        // Compact assessment label
         page.drawText("Assessment:", {
             x: 50,
-            y: yPosition - 55,
-            size: 9,
+            y: yPosition - 45, // Moved up
+            size: 8, // Smaller font
             font: robotoBold,
             color: rgb(0.2, 0.2, 0.2)
         });
 
-        // Wrap the risk message properly with consistent line spacing
-        const riskMessageLines = wrapText1(riskMessage, 120);
+        // Draw the wrapped risk message with tighter spacing
         riskMessageLines.forEach((line, index) => {
             page.drawText(line, {
                 x: 50,
-                y: yPosition - 67 - (index * 12),
+                y: yPosition - 58 - (index * 10), // Reduced from 11 to 10, moved up
                 size: 9,
                 font: robotoRegular,
                 color: rgb(0.2, 0.2, 0.2)
             });
         });
 
-        yPosition -= (90 + (riskMessageLines.length * 12));
+        yPosition -= (assessmentHeight + 10); // Reduced spacing
 
         // ===== DISCLAIMER SECTION =====
-        const disclaimerText = "Disclaimer: This tool is for educational purposes only and is not a medical diagnosis. Always consult a healthcare professional for any health concerns or symptoms. The final diagnosis must be made by a qualified clinician.";
-
-        // Draw a separator line
+        // Draw a separator line closer to assessment box
         page.drawLine({
             start: { x: 40, y: yPosition },
             end: { x: 555, y: yPosition },
@@ -815,43 +871,47 @@ app.post("/submit", upload.none(), async (req, res) => {
             color: rgb(0.7, 0.7, 0.7),
         });
 
-        yPosition -= 15;
+        yPosition -= 12; // Reduced spacing
 
-        // Draw disclaimer text with proper wrapping
-        const disclaimerLines = wrapText1(disclaimerText, 150);
+        const disclaimerText = "Disclaimer: This tool is for educational purposes only and is not a medical diagnosis. Always consult a healthcare professional for any health concerns or symptoms. The final diagnosis must be made by a qualified clinician.";
+
+        // Draw disclaimer text with tighter spacing
+        const disclaimerLines = wrapText(disclaimerText, 620, 8);
         disclaimerLines.forEach((line, index) => {
             page.drawText(line, {
                 x: 50,
-                y: yPosition - (index * 12),
-                size: 8,
+                y: yPosition - (index * 9), // Reduced from 10 to 9
+                size: 7, // Smaller font
                 font: robotoItalic,
                 color: rgb(0.5, 0.5, 0.5)
             });
         });
 
-        yPosition -= (disclaimerLines.length * 12 + 20);
+        yPosition -= (disclaimerLines.length * 9 + 20); // Reduced spacing
 
         // ===== FOOTER WITH CONTACT INFO =====
+        // Ensure footer is at proper position
+        const footerY = Math.max(30, yPosition);
+
         // Left side: Email
         page.drawText("connect@progenicslabs.com", {
             x: 50,
-            y: 30,
-            size: 9,
+            y: footerY,
+            size: 8, // Smaller font
             font: robotoItalic,
             color: rgb(0.5, 0.5, 0.5)
         });
 
         // Right side: Website
         const websiteText = "www.progenicslabs.com";
-        const websiteWidth = websiteText.length * 5;
+        const websiteWidth = websiteText.length * 4.5; // Adjusted for smaller font
         page.drawText(websiteText, {
             x: 595 - websiteWidth - 50,
-            y: 30,
-            size: 9,
+            y: footerY,
+            size: 8, // Smaller font
             font: robotoItalic,
             color: rgb(0.5, 0.5, 0.5)
         });
-
         // Save the PDF
         const pdfBytes = await pdfDoc.save();
         // Save locally
@@ -894,17 +954,24 @@ function wrapText(text, maxWidth, fontSize) {
     const lines = [];
     let currentLine = '';
     
-    // Approximate width calculation based on font size
-    // This is a rough estimate - adjust based on your specific font
-    const avgCharWidth = fontSize * 0.55;
+    // More accurate width calculation
+    // Average character width varies by font, but this is a better estimate
+    const avgCharWidth = fontSize * 0.5;
     const maxChars = Math.floor(maxWidth / avgCharWidth);
     
     for (let i = 0; i < words.length; i++) {
         const testLine = currentLine ? `${currentLine} ${words[i]}` : words[i];
         
-        if (testLine.length <= maxChars || !currentLine) {
+        // Check if adding this word would exceed the max width
+        if (testLine.length <= maxChars) {
             currentLine = testLine;
         } else {
+            // If currentLine is empty, force add the word (it's too long)
+            if (!currentLine) {
+                lines.push(words[i]);
+                continue;
+            }
+            
             lines.push(currentLine);
             currentLine = words[i];
         }
