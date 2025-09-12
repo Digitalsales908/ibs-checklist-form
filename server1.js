@@ -7,9 +7,7 @@ const fontkit = require('@pdf-lib/fontkit');
 const AWS = require('aws-sdk');
 require('dotenv').config();
 const fs = require("fs");
-// const nodemailer = require("nodemailer");
-const axios = require("axios");
-
+const nodemailer = require("nodemailer");
 
 const app = express();
 const PORT = 3000;
@@ -33,6 +31,21 @@ const s3 = new AWS.S3();
 //         pass: process.env.EMAIL_PASS
 //     }
 // });
+
+// Email configuration for Outlook
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.office365.com', // Outlook SMTP server
+    port: process.env.SMTP_PORT || 587,
+    secure: false, // Use TLS
+    requireTLS: true, // Outlook requires TLS
+    auth: {
+        user: process.env.EMAIL_USER, // Your Outlook email address
+        pass: process.env.EMAIL_PASS  // Your Outlook password or app password
+    },
+    tls: {
+        ciphers: 'SSLv3' // Sometimes needed for Outlook
+    }
+});
 
 // Function to upload Excel file to S3
 const uploadExcelToS3 = async (workbook) => {
@@ -76,74 +89,40 @@ const getExcelFromS3 = async (fileName) => {
 };
 
 // Function to send email with PDF attachment
-// const sendEmailWithPDF = async (recipientEmail, pdfBuffer, formData) => {
-//     // Use the exact value submitted by the form
-//     const completionPercentage = parseInt(formData.completionPercentage || formData.overallPercentage || 0, 10);
-//     const riskLevel = determineRiskLevel(Number(completionPercentage)); // For risk logic only
-
-//     const mailOptions = {
-//         from: `"Progenics Medical Center" <${process.env.EMAIL_USER}>`,
-//         to: recipientEmail,
-//         subject: 'Your IBS Assessment Results - Progenics Laboratories Private Limited',
-//         html: `
-//             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-//                 <h2 style="color: #2c3e50;">IBS Assessment Results</h2>
-//                 <p>Dear ${formData.name},</p>
-//                 <p>Thank you for completing your IBS assessment with Progenics Laboratories Private Limited. We have attached your detailed assessment results in PDF format.</p>
-                
-//                 <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-//                     <h3 style="margin-top: 0;">Assessment Summary</h3>
-//                     <p><strong>Completion:</strong> ${completionPercentage}%</p>
-//                     <p><strong>Risk Level:</strong> <span style="color: ${
-//                         riskLevel === 'high' ? '#dc3545' : 
-//                         riskLevel === 'moderate' ? '#ffc107' : '#28a745'
-//                     }; font-weight: bold;">${riskLevel.toUpperCase()}</span></p>
-//                 </div>
-//             </div>
-//         `,
-//         attachments: [{
-//             filename: `IBS_Assessment_${formData.name}_${new Date().toISOString().split('T')[0]}.pdf`,
-//             content: pdfBuffer
-//         }]
-//     };
-
-//     return transporter.sendMail(mailOptions);
-// };
 const sendEmailWithPDF = async (recipientEmail, pdfBuffer, formData) => {
-    const completionPercentage = parseFloat(
-        formData.completionPercentage || formData.overallPercentage || 0
-    );
-    const riskLevel = determineRiskLevel(completionPercentage);
+    // Use the exact value submitted by the form
+    const completionPercentage = parseInt(formData.completionPercentage || formData.overallPercentage || 0, 10);
+    const riskLevel = determineRiskLevel(Number(completionPercentage)); // For risk logic only
 
-    // ✅ Ensure it's a Buffer
-    const safeBuffer = Buffer.isBuffer(pdfBuffer) 
-        ? pdfBuffer 
-        : Buffer.from(pdfBuffer);
-
-    // ✅ Convert to Base64
-    const pdfBase64 = safeBuffer.toString("base64");
-
-    const payload = {
-        name: formData.name,
-        email: recipientEmail,
-        completionPercentage,
-        riskLevel,
-        pdfBase64
+    const mailOptions = {
+        from: `"Progenics Medical Center" <${process.env.EMAIL_USER}>`,
+        to: recipientEmail,
+        subject: 'Your IBS Assessment Results - Progenics Laboratories Private Limited',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2c3e50;">IBS Assessment Results</h2>
+                <p>Dear ${formData.name},</p>
+                <p>Thank you for completing your IBS assessment with Progenics Laboratories Private Limited. We have attached your detailed assessment results in PDF format.</p>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <h3 style="margin-top: 0;">Assessment Summary</h3>
+                    <p><strong>Completion:</strong> ${completionPercentage}%</p>
+                    <p><strong>Risk Level:</strong> <span style="color: ${
+                        riskLevel === 'high' ? '#dc3545' : 
+                        riskLevel === 'moderate' ? '#ffc107' : '#28a745'
+                    }; font-weight: bold;">${riskLevel.toUpperCase()}</span></p>
+                </div>
+            </div>
+        `,
+        attachments: [{
+            filename: `IBS_Assessment_${formData.name}_${new Date().toISOString().split('T')[0]}.pdf`,
+            content: pdfBuffer
+        }]
     };
 
-    try {
-        const response = await axios.post(
-            process.env.POWER_AUTOMATE_FLOW_URL,
-            payload,
-            { headers: { "Content-Type": "application/json" } }
-        );
-
-        console.log("✅ Sent to Power Automate:", response.status);
-    } catch (error) {
-        console.error("❌ Power Automate error:", error.response?.data || error.message);
-        throw error;
-    }
+    return transporter.sendMail(mailOptions);
 };
+
 
 
 // Utility function to upload file to S3
@@ -192,7 +171,7 @@ const checkboxOptions = {
     "sec-1": [
         "Recurrent abdominal pain (>1 day/week in the last 3 months)",
         "Bloating or abdominal distension",
-        "Change in bowel frequency and stool form/shape"
+        "Change in bowel frequency and stool form and shape"
     ],
     "sec-2": [
         "Stress or anxiety",
@@ -224,7 +203,7 @@ const checkboxOptions = {
         "Weight loss",
         "Fever",
         "Nocturnal symptoms",
-        "Family history of IBD, celiac, colorectal cancer",
+        "Family history of IBD, celiac, cancer",
         "New symptom onset (<6 months)",
         "Recent antibiotic use",
         "Extra-intestinal signs (rash, arthritis, eye Inflammation)"
@@ -951,17 +930,15 @@ app.post("/submit", upload.none(), async (req, res) => {
         // Save the PDF
         const pdfBytes = await pdfDoc.save();
         // Save locally
-        const pdfBuffer = Buffer.from(pdfBytes);   // ✅ ensure binary
-        fs.writeFileSync(pdfPath, pdfBuffer);      // ✅ correct way to save
-
+        fs.writeFileSync(pdfPath, pdfBytes);
 
        try {
             // Upload to S3
-            const s3Url = await uploadToS3(pdfBuffer, pdfFileName);
+            const s3Url = await uploadToS3(pdfBytes, pdfFileName);
             
             // Send email with PDF attachment
             try {
-                await sendEmailWithPDF(formData.email, pdfBuffer, formData);
+                await sendEmailWithPDF(formData.email, pdfBytes, formData);
                 console.log('Email sent successfully to:', formData.email);
             } catch (emailError) {
                 console.error('Error sending email:', emailError);
