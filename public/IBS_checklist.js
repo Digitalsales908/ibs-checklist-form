@@ -37,21 +37,22 @@ function updateOverallProgress() {
     if (overallFill) {
       overallFill.style.width = overallPercent + '%';
       overallFill.classList.remove('low', 'moderate', 'high');
-      if (overallPercent >= 1 && overallPercent <= 20) {
+      const roundedPercent = Math.round(overallPercent);
+      if (roundedPercent >= 1 && roundedPercent <= 20) {
         overallFill.classList.add('low');
         currentRiskLabel.textContent = 'Low';
         currentRiskLabel.classList.add('low-risk');
         if (lowRiskMessage) lowRiskMessage.style.display = 'block';
         if (moderateRiskMessage) moderateRiskMessage.style.display = 'none';
         if (highRiskMessage) highRiskMessage.style.display = 'none';
-      } else if (overallPercent >= 21 && overallPercent <= 40) {
+      } else if (roundedPercent >= 21 && roundedPercent <= 40) {
         overallFill.classList.add('moderate');
         currentRiskLabel.textContent = 'Moderate';
         currentRiskLabel.classList.add('moderate-risk');
         if (lowRiskMessage) lowRiskMessage.style.display = 'none';
         if (moderateRiskMessage) moderateRiskMessage.style.display = 'block';
         if (highRiskMessage) highRiskMessage.style.display = 'none';
-      } else if (overallPercent >= 41) {
+      } else if (roundedPercent >= 41) {
         overallFill.classList.add('high');
         currentRiskLabel.textContent = 'High';
         currentRiskLabel.classList.add('high-risk');
@@ -309,6 +310,14 @@ function showModal(name, age, gender, phone, email, riskLevel, percentage, messa
 
   // Show modal
   modal.style.display = 'block';
+  
+  // Re-enable the submit button
+  const submitButton = document.getElementById('submitBtn');
+  if (submitButton) {
+    submitButton.disabled = false;
+    submitButton.style.opacity = '1';
+    submitButton.style.cursor = 'pointer';
+  }
 }
 
 // Initialize overall progress and auto-selection on page load
@@ -388,6 +397,14 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
+    // Get and disable the submit button
+    const submitButton = document.getElementById('submitBtn');
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.style.opacity = '0.5';
+      submitButton.style.cursor = 'not-allowed';
+    }
+    
     // If validation passes, submit the form
     const formData = new FormData(form);
 
@@ -429,9 +446,36 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get country code and format phone number
         const countryCode = document.getElementById('country-code') ? document.getElementById('country-code').value : '';
         const fullPhone = countryCode && phone ? countryCode + ' ' + phone : phone;
-        
-        // Show the summary modal instead of alert
-        showModal(name, age, sex, fullPhone, email, riskLevel, percentage, message);
+
+        // Remove any existing success popup
+        const existingPopup = document.querySelector('.success-popup');
+        if (existingPopup) {
+          existingPopup.remove();
+        }
+
+        // Show success popup immediately
+        const successPopup = document.createElement('div');
+        successPopup.className = 'success-popup';
+        successPopup.innerHTML = `
+          <div class="success-content">
+            <div class="success-icon">✓</div>
+            <div class="success-message">Form submitted successfully!</div>
+          </div>
+        `;
+        document.body.appendChild(successPopup);
+
+        // Clear any existing timeouts
+        if (window.modalTimeout) {
+          clearTimeout(window.modalTimeout);
+        }
+
+        // Remove the popup and show modal after 3 seconds
+        window.modalTimeout = setTimeout(() => {
+          if (successPopup && successPopup.parentNode) {
+            successPopup.remove();
+          }
+          showModal(name, age, sex, fullPhone, email, riskLevel, percentage, message);
+        }, 3000);
         
         // Optionally reset the form
         form.reset();
@@ -448,10 +492,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       } else {
         alert("Error: " + result.message);
+        // Re-enable submit button on error
+        const submitButton = document.getElementById('submitBtn');
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.style.opacity = '1';
+          submitButton.style.cursor = 'pointer';
+        }
       }
     } catch (error) {
       alert("An error occurred while submitting the form. Please try again.");
       console.error("Form submission error:", error);
+      // Re-enable submit button on error
+      const submitButton = document.getElementById('submitBtn');
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.style.opacity = '1';
+        submitButton.style.cursor = 'pointer';
+      }
     }
   });
 });
