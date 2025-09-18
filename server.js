@@ -1105,3 +1105,20 @@ app.get('/download-excel/:filename', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`✅ Server running at http://localhost:${PORT}`);
 });
+
+
+// ==================== KEEP ALIVE SCRIPT ====================
+const url = process.env.RENDER_EXTERNAL_URL || "https://ibs-checklist-form.onrender.com"; 
+
+function keepAlive() {
+    setInterval(async () => {
+        try {
+            const response = await fetch(url);
+            console.log(`[KeepAlive] Pinged ${url} - Status: ${response.status}`);
+        } catch (err) {
+            console.error("[KeepAlive] Error pinging server:", err.message);
+        }
+    }, 3 * 60 * 1000); // every 3 minutes
+}
+
+keepAlive();
